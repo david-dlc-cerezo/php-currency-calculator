@@ -7,7 +7,7 @@
  * @version 1.0.0 2013-10-06
  */
 
-require_once("./include/autoload.php");
+spl_autoload_register('autoLoader');
 session_start();
 
 $title = "Currency Calculator";
@@ -230,4 +230,19 @@ $targetCurrency = (array_key_exists('target_currency', $_REQUEST)) ? $_REQUEST['
 //Save changes in Session
 $_SESSION['currencyManager'] = serialize($oCM);
 $_SESSION['currencyExchangeManager'] = serialize($oCEM);
+
+
+/**
+ * Autoload Classes when needed
+ *
+ * @param string $className Name of the class to load
+ *
+ * @return null
+ */
+function autoLoader($className)
+{
+    $path = '/classes/';
+
+    include_once $path.$className.'.php';
+}
 ?>
