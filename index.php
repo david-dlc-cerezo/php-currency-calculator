@@ -13,11 +13,13 @@ session_start();
 $title = "Currency Calculator";
 
 //Recover saved data or initialice
+$oCEM = null;
 if (array_key_exists('currencyExchangeManager', $_SESSION))
     $oCEM = unserialize($_SESSION['currencyExchangeManager']);
 if (!$oCEM instanceof CurrencyExchangeManager)
     $oCEM = new CurrencyExchangeManager();
 
+$oCM = null;
 if (array_key_exists('currencyManager', $_SESSION))
     $oCM = unserialize($_SESSION['currencyManager']);
 if (!$oCM instanceof CurrencyManager)
