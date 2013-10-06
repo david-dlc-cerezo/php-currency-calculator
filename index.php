@@ -7,7 +7,7 @@
  * @version 1.0.0 2013-10-06
  */
 
-require_once("include/autoload.php");
+require_once("./include/autoload.php");
 session_start();
 
 $title = "Currency Calculator";
@@ -79,7 +79,7 @@ $targetCurrency = (array_key_exists('target_currency', $_REQUEST)) ? $_REQUEST['
                 {
                     $("#addCurrencyXchgRate").dialog(
                     {
-                        width: 450,
+                        width: 550,
                         modal: true,
                         buttons: {
                             "Save exchange rate": function ()
@@ -113,7 +113,17 @@ $targetCurrency = (array_key_exists('target_currency', $_REQUEST)) ? $_REQUEST['
                 $("#base_currency").val('<?php echo $baseCurrency ?>');
                 $("#target_currency").val('<?php echo $targetCurrency ?>');
 
-                $("#btnConvert").button();
+                $("#btnConvert").button().click(function (e)
+                {
+                    if ($('#convertForm')[0].checkValidity())
+                    {
+                        e.preventDefault();
+                        $("div#result").load(
+                            './ajax/currencyConversion.php',
+                            $("#convertForm").serialize()
+                        );
+                    }
+                });
             })
         </script>
 
@@ -135,7 +145,11 @@ $targetCurrency = (array_key_exists('target_currency', $_REQUEST)) ? $_REQUEST['
                 display: none; 
                 text-align: center;
                 margin: 0.5em;
-                line-height: 2.3em;
+            }
+            
+            .currencyDialog input,  .currencyDialog select {
+                margin-top: 0.5em;
+                margin-bottom: 0.5em;
             }
 
             #result {
@@ -148,11 +162,11 @@ $targetCurrency = (array_key_exists('target_currency', $_REQUEST)) ? $_REQUEST['
 
         <nav id="buttonSet">
             <input id="btnAddCurrency" type="button" value="Add/edit currency">
-            <input id="btnViewRates" type="button" value="View currency exchange rates">
             <input id="btnAddRate" type="button" value="Add/edit currency exchange rate">
+            <input id="btnViewRates" type="button" value="View currency exchange rates">
         </nav>
 
-        <div id="mainForm" style="line-height: 2.3em;">
+        <div id="main" style="line-height: 2.3em;">
             <form id="convertForm" method="post" action="">
                 <input name="base_value" id="base_value" type="number" step="0.01" placeholder="Base currency value" 
                    title="Base currency value to convert" value="<?php echo $value?>" required>
@@ -170,16 +184,6 @@ $targetCurrency = (array_key_exists('target_currency', $_REQUEST)) ? $_REQUEST['
         </div>
 
         <div id="result">
-        <?php
-            if ($value && $baseCurrency && $targetCurrency) {
-                $targetValue = $oCEM->calculateTarget($value, $baseCurrency, $targetCurrency);
-                
-                if ($targetValue === null)
-                    echo "<p>There is no currency exchange rate defined for this currency pair ($baseCurrency - $targetCurrency)</p>";
-                else
-                    echo "<p>$value $baseCurrency = $targetValue $targetCurrency</p>";
-            }
-        ?>
         </div>
 
         
@@ -189,25 +193,29 @@ $targetCurrency = (array_key_exists('target_currency', $_REQUEST)) ? $_REQUEST['
                        placeholder="Currency code" title="Currency code" required>
                 <br/>
                 <input name="newCurrency_name" id="newCurrency_name" type="text" value=""
-                       placeholder="Currency name [Optional]" title="Currency name [Optional]">
+                       placeholder="Currency name [Optional]" title="Currency name [Optional]"> 
+                <br>               
+                <small>*If the currency code already exist, this will be updated with the new information.</small>
             </form>
         </div>
         
         <div id="addCurrencyXchgRate" title="Add/edit currency exchange rate" class="currencyDialog">
             <form id="newCurrencyXchgRateForm" method="post" action="">
-                <select name="new_base_currency" id="new_base_currency" class="currencyCodes" title="Select base currency" required>
-                    <option disabled selected>Select base currency</option>
-                    <?php $oCM->printOptions() ?>
-                </select>
-                &rarr;
-                <select name="new_target_currency" id="new_target_currency" class="currencyCodes" title="Select target currency" required>
-                    <option disabled selected>Select target currency</option>
-                    <?php $oCM->printOptions() ?>
-                </select>
-                <br>
-                <input name="new_rate" id="new_rate" type="number" step="any" placeholder="Exchange rate" 
-                    title="Exchange rate" value="" required>
-                <br>
+                <div style="white-space: nowrap">
+                    1 <select name="new_base_currency" id="new_base_currency" class="currencyCodes" title="Select base currency" required>
+                        <option disabled selected>Select base currency</option>
+                        <?php $oCM->printOptions() ?>
+                    </select>
+                    =
+                    <input name="new_rate" id="new_rate" type="number" step="any" placeholder="Exchange rate" 
+                        title="Exchange rate" value="" required>
+                    <select name="new_target_currency" id="new_target_currency" class="currencyCodes" title="Select target currency" required>
+                        <option disabled selected>Select target currency</option>
+                        <?php $oCM->printOptions() ?>
+                    </select>
+                </div>
+              
+                <small>*If the exchange rate already exist, this will be updated with the new information.</small>
             </form>
         </div>
 
