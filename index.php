@@ -62,16 +62,27 @@ $targetCurrency = (array_key_exists('target_currency', $_REQUEST)) ? $_REQUEST['
                     {
                         width: 450,
                         modal: true,
-                        buttons: {
-                            "Save currency": function ()
+                        buttons: [
                             {
-                                $("#newCurrencyForm").submit();
+                                text: "Save currency",
+	                            type: "submit",
+	                            click: function() { 
+		                            //IE doesn't link this submit with the form
+		                            if ( navigator.userAgent.match(/msie/i) )
+		                            {
+			                            $("#newCurrencyForm").submit();
+			                        } 
+			                    },
+	                            form: "newCurrencyForm"
                             },
-                            Cancel: function ()
                             {
-                                $(this).dialog("close");
+                            	text: "Cancel",
+                            	click: function ()
+	                            {
+	                                $(this).dialog("close");
+	                            }
                             }
-                        }
+                        ]
                     });
                 });
 
@@ -81,16 +92,27 @@ $targetCurrency = (array_key_exists('target_currency', $_REQUEST)) ? $_REQUEST['
                     {
                         width: 550,
                         modal: true,
-                        buttons: {
-                            "Save exchange rate": function ()
+                        buttons: [
                             {
-                                $("#newCurrencyXchgRateForm").submit();
+                                text: "Save exchange rate",
+	                            click: function() { 
+		                            //IE doesn't link this submit with the form
+		                            if ( navigator.userAgent.match(/msie/i) )
+		                            {
+			                            $("#newCurrencyXchgRateForm").submit();
+			                        }
+		                        },
+	                            type: "submit",
+	                            form: "newCurrencyXchgRateForm"
                             },
-                            Cancel: function ()
+                            {
+                            	text: "Cancel",
+                            	click: function ()
                             {
                                 $(this).dialog("close");
                             }
-                        }
+                            }
+                        ]
                     });
                 });
 
@@ -115,13 +137,21 @@ $targetCurrency = (array_key_exists('target_currency', $_REQUEST)) ? $_REQUEST['
 
                 $("#btnConvert").button().click(function (e)
                 {
-                    if ($('#convertForm')[0].checkValidity())
+                    //IE doesn't have HTML5 form validity check
+                    if ( navigator.userAgent.match(/msie/i) || $('#convertForm')[0].checkValidity() )
                     {
                         e.preventDefault();
-                        $("div#result").load(
+						$("div#result").load(
                             './ajax/currencyConversion.php',
-                            $("#convertForm").serialize()
-                        );
+                            $("#convertForm").serialize(),
+                            function( response, status, xhr )
+                            {
+                                if ( status == "error" ) {
+                                    var msg = "Sorry, but there was an error: ";
+                                    $( "div#result" ).html( "<p class='error'>" + msg + xhr.status + " " + xhr.statusText + "</p>" );
+                            	}
+                            }
+    					);
                     }
                 });
             })
@@ -155,6 +185,10 @@ $targetCurrency = (array_key_exists('target_currency', $_REQUEST)) ? $_REQUEST['
             #result {
                 font-size: 1.5em;
             }
+            
+            .error {
+            	color: red;
+            }
         </style>
     </head>
     <body>
@@ -184,6 +218,10 @@ $targetCurrency = (array_key_exists('target_currency', $_REQUEST)) ? $_REQUEST['
         </div>
 
         <div id="result">
+        <?php
+        	if ( array_key_exists('base_value', $_REQUEST) ) // If data was sent calculate the exchange.
+				$oCEM->printConversion($value, $baseCurrency, $targetCurrency);
+		?>
         </div>
 
         
@@ -201,7 +239,7 @@ $targetCurrency = (array_key_exists('target_currency', $_REQUEST)) ? $_REQUEST['
         
         <div id="addCurrencyXchgRate" title="Add/edit currency exchange rate" class="currencyDialog">
             <form id="newCurrencyXchgRateForm" method="post" action="">
-                <div style="white-space: nowrap">
+                <div style="white-space: nowrap; *vertical-align: middle;">
                     1 <select name="new_base_currency" id="new_base_currency" class="currencyCodes" title="Select base currency" required>
                         <option disabled selected>Select base currency</option>
                         <?php $oCM->printOptions() ?>

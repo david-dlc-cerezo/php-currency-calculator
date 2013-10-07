@@ -54,8 +54,9 @@ class CurrencyExchangeManager
     public function add($currencyCode1, $currencyCode2, $rate)
     {
         $new = new CurrencyExchangeRate($currencyCode1, $currencyCode2, $rate, new DateTime);
-
-        if ($new->currencyCode1 && $new->currencyCode2 && $new->rate) {
+        
+        //Prevents from processing an invalid input or a exchange rate with base currency = target currency
+        if ($new->currencyCode1 && $new->currencyCode2 && $new->rate && ($new->currencyCode1 != $new->currencyCode2) ) {
             $updated = false;
             foreach ($this->currencyExchangeRates as &$exchange) {
                 if ($exchange->currencyCode1 == $new->currencyCode1
@@ -85,10 +86,16 @@ class CurrencyExchangeManager
      */
     public function calculateTarget($value, $baseCurrency, $targetCurrency)
     {
-        $baseCurrency = Currency::validateCode($baseCurrency);
-        $targetCurrency = Currency::validateCode($targetCurrency);
+    	try{
+        	$baseCurrency = Currency::validateCode($baseCurrency);
+        	$targetCurrency = Currency::validateCode($targetCurrency);
+    	}
+    	catch(Exception $e) {
+    		echo 'Caught exception: ',  $e->getMessage(), "\n";
+    		exit();
+    	}
         $targetValue = null;
-
+        
         if ($baseCurrency == $targetCurrency) {
             $targetValue = $value;
         } else {
@@ -112,6 +119,34 @@ class CurrencyExchangeManager
         }
 
         return $targetValue;
+    }
+    
+    /**
+     * Calculates the equivalent value of the target currency, given a value on a base currency
+     * and prints a message with the result.
+     *
+     * @param float  $value          Value on the base currency
+     * @param string $baseCurrency   Base currency code
+     * @param string $targetCurrency Target currency code
+     *
+     * @return float|null The equivalent value on the target currency
+     */
+    public function printConversion($value, $baseCurrency, $targetCurrency)
+    {
+    	if (!$value || is_nan($value))
+    		echo "<p class='error'>You must give a valid Base currency value</p>";
+    	elseif(!$baseCurrency)
+    		echo "<p class='error'>You must select a Base Currency</p>";
+    	elseif(!$targetCurrency)
+    		echo "<p class='error'>You must select a Target Currency</p>";
+    	else {
+	    	$targetValue = $this->calculateTarget($value, $baseCurrency, $targetCurrency);
+	    	
+	    	if ($targetValue === null)
+	    		echo "<p>There is no currency exchange rate defined for this currency pair ($baseCurrency - $targetCurrency)</p>";
+	    	else
+	    		echo "<p>$value $baseCurrency = $targetValue $targetCurrency</p>";
+    	}
     }
 
     /**

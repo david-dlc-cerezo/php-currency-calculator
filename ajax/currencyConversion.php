@@ -29,14 +29,7 @@ $baseCurrency = (array_key_exists('base_currency', $_REQUEST)) ? $_REQUEST['base
 $targetCurrency = (array_key_exists('target_currency', $_REQUEST)) ? $_REQUEST['target_currency'] : null;
 
 //Performs the conversion
-if ($value && $baseCurrency && $targetCurrency) {
-    $targetValue = $oCEM->calculateTarget($value, $baseCurrency, $targetCurrency);
-                
-    if ($targetValue === null)
-        echo "<p>There is no currency exchange rate defined for this currency pair ($baseCurrency - $targetCurrency)</p>";
-    else
-        echo "<p>$value $baseCurrency = $targetValue $targetCurrency</p>";
-}
+$oCEM->printConversion($value, $baseCurrency, $targetCurrency);
     
 /**
  * Autoload Classes when needed
